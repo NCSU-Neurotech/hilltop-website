@@ -1,0 +1,55 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Facility {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  children  Child[]
+  createdAt DateTime @default(now())
+}
+
+model Child {
+  id                  String         @id @default(cuid())
+  facilityId          String
+  facility            Facility       @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+  firstName           String
+  age                 Int
+  avatarId            String         @default("bear")
+  scanSpeedMs         Int            @default(1200)
+  scanHighlightColor  String         @default("#FFD700")
+  voiceRate           Float          @default(0.85)
+  voicePitch          Float          @default(1.0)
+  preferredCategories String[]
+  notes               String         @default("")
+  bookProgress        BookProgress[]
+  commTiles           CommTile[]
+  createdAt           DateTime       @default(now())
+}
+
+model BookProgress {
+  id        String @id @default(cuid())
+  childId   String
+  child     Child  @relation(fields: [childId], references: [id], onDelete: Cascade)
+  bookId    String
+  pageIndex Int    @default(0)
+
+  @@unique([childId, bookId])
+}
+
+model CommTile {
+  id      String @id @default(cuid())
+  childId String
+  child   Child  @relation(fields: [childId], references: [id], onDelete: Cascade)
+  label   String
+  icon    String
+  boardId String
+  order   Int
+}
