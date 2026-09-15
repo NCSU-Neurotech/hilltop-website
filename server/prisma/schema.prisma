@@ -3,8 +3,15 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  // Migrations run over a direct, unpooled connection — the pooled
+  // DATABASE_URL is transaction-mode PgBouncer, which doesn't reliably
+  // support the DDL + prepared-statement patterns `prisma migrate` uses
+  // (collisions like `prepared statement "s1" already exists`), even with
+  // `?pgbouncer=true`. The app's Prisma Client at runtime still uses the
+  // pooled DATABASE_URL above; only the migration engine uses this.
+  directUrl = env("DIRECT_URL")
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
