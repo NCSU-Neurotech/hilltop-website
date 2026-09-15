@@ -2,7 +2,7 @@
  * ChildHub — per-child activity hub (/dashboard/child/:childId)
  *
  * The main screen a child sees. Five category tiles (Games, Learn, Stories,
- * Music, Communicate), a mode toggle, and the scan engine integrated via
+ * Sound Boards, Communicate), a mode toggle, and the scan engine integrated via
  * ScanGroup / ScanItem.
  *
  * Caregiver mode:  normal mouse + keyboard, mode toggle button visible.
@@ -16,7 +16,8 @@ import { useAuth } from '../context/AuthContext'
 import { ScanGroup } from '../components/ScanGroup'
 import ScanItem from '../components/ScanItem'
 import { AVATARS } from '../components/ChildModal'
-import { DEMO_CHILDREN } from '../demo/demoData'
+import { getEffectiveDemoChild } from '../demo/demoData'
+import { CaregiverNotes } from '../components/CaregiverNotes'
 
 const API = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
@@ -27,11 +28,11 @@ const AVATAR_MAP = Object.fromEntries(AVATARS.map(({ id, emoji }) => [id, emoji]
 // ---------------------------------------------------------------------------
 
 const CATEGORIES = [
-  { id: 'games',       label: 'Games',       emoji: '🎮', color: '#ef4444', desc: 'Play fun games' },
-  { id: 'learn',       label: 'Learn',       emoji: '📚', color: '#22c55e', desc: 'Letters, numbers & more' },
-  { id: 'stories',     label: 'Stories',     emoji: '📖', color: '#3b82f6', desc: 'Books & adventures' },
-  { id: 'music',       label: 'Music',       emoji: '🎵', color: '#a855f7', desc: 'Play instruments' },
-  { id: 'communicate', label: 'Communicate', emoji: '💬', color: '#f97316', desc: 'Say what you need' },
+  { id: 'games',        label: 'Games',        emoji: '🎮', color: '#ef4444', desc: 'Play fun games', route: 'games' },
+  { id: 'learn',        label: 'Learn',        emoji: '📚', color: '#22c55e', desc: 'Letters, numbers & more', route: 'learn' },
+  { id: 'stories',      label: 'Stories',      emoji: '📖', color: '#3b82f6', desc: 'Books & adventures', route: 'stories' },
+  { id: 'sound-boards', label: 'Sound Boards', emoji: '🔊', color: '#a855f7', desc: 'Explore & create sounds', route: 'sound-boards' },
+  { id: 'communicate',  label: 'Communicate',  emoji: '💬', color: '#f97316', desc: 'Say what you need', route: 'communicate' },
 ]
 
 // ---------------------------------------------------------------------------
@@ -50,7 +51,7 @@ export default function ChildHub() {
   // Fetch child profile (or use demo data)
   useEffect(() => {
     if (isDemo) {
-      const found = DEMO_CHILDREN.find((c) => c.id === childId)
+      const found = getEffectiveDemoChild(childId)
       if (!found) { navigate('/dashboard', { replace: true }); return }
       setChild(found)
       setLoading(false)
@@ -119,8 +120,16 @@ export default function ChildHub() {
           </div>
         </div>
 
-        {/* Right: mode toggle now handled by the top-right global button */}
-        {!isChildMode ? null : (
+        {/* Right: Settings button + mode toggle */}
+        {!isChildMode && (
+          <Link
+            to={`/dashboard/child/${childId}/settings`}
+            className="px-3 h-8 rounded-lg bg-slate-700 text-slate-300 text-xs font-semibold hover:bg-slate-600 transition-all inline-flex items-center justify-center gap-1"
+          >
+            <span aria-hidden>⚙️</span> Settings
+          </Link>
+        )}
+        {isChildMode && (
           <div className="text-slate-500 text-xs">Press Esc to exit</div>
         )}
       </header>
@@ -134,50 +143,55 @@ export default function ChildHub() {
             scanSpeedMs={scanProfile.scanSpeedMs}
             highlightColor={scanProfile.scanHighlightColor}
           >
-            <CategoryGrid childId={childId} isChildMode={isChildMode} />
+            <CategoryGrid childId={childId} isChildMode={isChildMode} enabledCategories={child.enabledCategories} />
           </ScanGroup>
         ) : (
-          <CategoryGrid childId={childId} isChildMode={false} />
+          <CategoryGrid childId={childId} isChildMode={false} enabledCategories={child.enabledCategories} />
         )}
 
         {!isChildMode && (
-          <section className="w-full max-w-4xl mt-10">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <span className="text-slate-400 text-xs font-bold uppercase tracking-widest">
-                  Shared activities
-                </span>
-                <p className="text-slate-500 text-sm mt-1">
-                  Launch a group story session or a two-device game directly from the hub.
-                </p>
+          <section className="w-full max-w-4xl mt-10 space-y-6">
+            {/* Caregiver Notes */}
+            <CaregiverNotes childId={childId} limit={3} />
+
+            {/* Shared activities */}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <span className="text-slate-400 text-xs font-bold uppercase tracking-widest">
+                    Shared activities
+                  </span>
+                  <p className="text-slate-500 text-sm mt-1">
+                    Launch a group story session or a two-device game directly from the hub.
+                  </p>
+                </div>
               </div>
-              <span className="text-slate-500 text-xs">Caregiver only</span>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <button
-                onClick={() => navigate(`/dashboard/child/${childId}/storytime`)}
-                className="flex items-center justify-between gap-4 p-5 rounded-2xl bg-[#1e293b] border-2 border-slate-700/60 hover:border-white/20 transition-all"
-              >
-                <div className="text-left">
-                  <p className="text-white font-black text-base">Group Storytime</p>
-                  <p className="text-slate-400 text-sm mt-1">
-                    Share a 4-digit code so listeners can follow along on another device.
-                  </p>
-                </div>
-                <span className="text-4xl">🎭</span>
-              </button>
-              <button
-                onClick={() => navigate(`/dashboard/child/${childId}/games/online`)}
-                className="flex items-center justify-between gap-4 p-5 rounded-2xl bg-[#1e293b] border-2 border-slate-700/60 hover:border-white/20 transition-all"
-              >
-                <div className="text-left">
-                  <p className="text-white font-black text-base">Online Pong</p>
-                  <p className="text-slate-400 text-sm mt-1">
-                    Start a two-person game and share the room code with another device.
-                  </p>
-                </div>
-                <span className="text-4xl">🏓</span>
-              </button>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <button
+                  onClick={() => navigate(`/dashboard/child/${childId}/storytime`)}
+                  className="flex items-center justify-between gap-4 p-5 rounded-2xl bg-[#1e293b] border-2 border-slate-700/60 hover:border-white/20 transition-all"
+                >
+                  <div className="text-left">
+                    <p className="text-white font-black text-base">Group Storytime</p>
+                    <p className="text-slate-400 text-sm mt-1">
+                      Share a 4-digit code so listeners can follow along on another device.
+                    </p>
+                  </div>
+                  <span className="text-4xl">🎭</span>
+                </button>
+                <button
+                  onClick={() => navigate(`/dashboard/child/${childId}/games/online`)}
+                  className="flex items-center justify-between gap-4 p-5 rounded-2xl bg-[#1e293b] border-2 border-slate-700/60 hover:border-white/20 transition-all"
+                >
+                  <div className="text-left">
+                    <p className="text-white font-black text-base">Online Pong</p>
+                    <p className="text-slate-400 text-sm mt-1">
+                      Start a two-person game and share the room code with another device.
+                    </p>
+                  </div>
+                  <span className="text-4xl">🏓</span>
+                </button>
+              </div>
             </div>
           </section>
         )}
@@ -195,13 +209,31 @@ export default function ChildHub() {
 // Category grid (used in both modes — inside ScanGroup in child mode)
 // ---------------------------------------------------------------------------
 
-function CategoryGrid({ childId, isChildMode }) {
+function CategoryGrid({ childId, isChildMode, enabledCategories }) {
   const navigate = useNavigate()
+
+  // undefined/null means "not configured yet" — show everything. An explicit
+  // empty array means a caregiver turned every category off — show nothing.
+  const visibleCategories = Array.isArray(enabledCategories)
+    ? CATEGORIES.filter((cat) => enabledCategories.includes(cat.id))
+    : CATEGORIES
+
+  if (visibleCategories.length === 0) {
+    return !isChildMode ? (
+      <p className="text-slate-400 text-sm text-center max-w-md">
+        No categories are enabled for this child. Enable some in{' '}
+        <Link to={`/dashboard/child/${childId}/settings`} className="text-[#FFD700] hover:underline">
+          Settings
+        </Link>
+        .
+      </p>
+    ) : null
+  }
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-6 w-full max-w-2xl">
-      {CATEGORIES.map((cat) => {
-        const destination = `/dashboard/child/${childId}/${cat.id}`
+      {visibleCategories.map((cat) => {
+        const destination = `/dashboard/child/${childId}/${cat.route}`
 
         return isChildMode ? (
           // In child mode: ScanItem wraps each tile for auto-scanning
