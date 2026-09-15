@@ -1,22 +1,15 @@
 /**
- * useSpeech — TTS hook with ElevenLabs primary and Web Speech API fallback.
- *
- * Primary path: POST /api/tts → audio/mpeg → play via Audio element. Only
- * attempted when the active child's selected voice is an ELEVENLABS voice
- * (read from ScanContext, keyed off ttsPreference.voiceId) — previously
- * every call tried ElevenLabs regardless of what was selected, ignoring a
- * caregiver's "Default Browser Voice"/"Child Voice" choice entirely and
- * always using one hardcoded server-side voice rather than the one picked
- * in Settings.
- * Fallback: Web Speech API (used whenever the selected voice is a browser
- *           voice, or if the server returns 503/errors for an ElevenLabs one).
+ * useSpeech — TTS hook. ElevenLabs is the only voice; there's no
+ * user-facing voice choice. If the server can't produce ElevenLabs audio
+ * (no API key configured, request fails, etc.) it falls back to the Web
+ * Speech API silently — the fallback is never surfaced to the user as a
+ * distinct "voice."
  *
  * Usage:
  *   const { speak, cancel } = useSpeech()
  *   speak('Hello!')
  */
 import { useCallback, useRef, useEffect } from 'react'
-import { useScan } from '../context/ScanContext'
 
 const API = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
@@ -102,7 +95,6 @@ async function speakElevenLabs(text, voiceId, audioRef) {
 export function useSpeech() {
   const voiceRef = useRef(null)
   const audioRef = useRef(null)
-  const { scanProfile } = useScan()
 
   useEffect(() => {
     function resolveVoice() { voiceRef.current = pickVoice() }
@@ -116,20 +108,14 @@ export function useSpeech() {
     if (audioRef.current) { audioRef.current.pause(); audioRef.current = null }
     window.speechSynthesis?.cancel()
 
-    // Only attempt ElevenLabs when the active child's selected voice
-    // actually is one — a "Default Browser Voice"/"Child Voice" choice
-    // should never make a network call at all, let alone silently play a
-    // different (ElevenLabs) voice than the one that was picked.
-    if (scanProfile.ttsProvider === 'ELEVENLABS') {
-      try {
-        await speakElevenLabs(text, scanProfile.ttsVoiceId, audioRef)
-        return
-      } catch {
-        // fall through to browser TTS below
-      }
+    try {
+      await speakElevenLabs(text, undefined, audioRef)
+      return
+    } catch {
+      // Silent fallback — never surfaced as a different "voice" to the user.
     }
     speakFallback(text, voiceRef, opts)
-  }, [scanProfile.ttsProvider, scanProfile.ttsVoiceId])
+  }, [])
 
   const cancel = useCallback(() => {
     if (audioRef.current) { audioRef.current.pause(); audioRef.current = null }

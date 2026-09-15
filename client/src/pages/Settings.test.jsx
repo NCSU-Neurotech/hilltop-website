@@ -18,7 +18,6 @@ describe('Settings Page Logic', () => {
         scanSpeed: 1000,
         highlightColor: '#FF0000',
         enabledCategories: ['games', 'learn'],
-        selectedVoice: 'bella'
       }
 
       localStorage.setItem(demoSettingsKey, JSON.stringify(settings))
@@ -41,7 +40,6 @@ describe('Settings Page Logic', () => {
         scanSpeed: 1200,
         highlightColor: '#FFD700',
         enabledCategories: ['games', 'learn', 'stories', 'sound-boards', 'communicate'],
-        selectedVoice: 'default'
       }
 
       localStorage.setItem(demoSettingsKey, JSON.stringify(settings))
@@ -123,45 +121,6 @@ describe('Settings Page Logic', () => {
       const fontSizeRem2 = 0.8
       const pixelValue2 = fontSizeRem2 * 16
       expect(pixelValue2).toBe(12.8)
-    })
-  })
-
-  describe('Voice Selection', () => {
-    it('should have default voice option', () => {
-      const VOICES = [
-        { id: 'default', name: 'Default Browser Voice', provider: 'BROWSER' },
-        { id: 'bella', name: 'Bella (ElevenLabs)', provider: 'ELEVENLABS', gender: 'female' },
-        { id: 'adam', name: 'Adam (ElevenLabs)', provider: 'ELEVENLABS', gender: 'male' },
-        { id: 'child', name: 'Child Voice', provider: 'BROWSER' },
-      ]
-
-      expect(VOICES).toHaveLength(4)
-      expect(VOICES[0].id).toBe('default')
-    })
-
-    it('should find voice by id', () => {
-      const VOICES = [
-        { id: 'default', name: 'Default Browser Voice', provider: 'BROWSER' },
-        { id: 'bella', name: 'Bella (ElevenLabs)', provider: 'ELEVENLABS' },
-      ]
-
-      const selectedVoice = 'bella'
-      const voice = VOICES.find(v => v.id === selectedVoice)
-
-      expect(voice).toBeDefined()
-      expect(voice.name).toBe('Bella (ElevenLabs)')
-      expect(voice.provider).toBe('ELEVENLABS')
-    })
-
-    it('should persist voice selection', () => {
-      const childId = 'demo-child-1'
-      const demoSettingsKey = `demo-settings-${childId}`
-
-      const selectedVoice = 'bella'
-      localStorage.setItem(demoSettingsKey, JSON.stringify({ selectedVoice }))
-
-      const saved = JSON.parse(localStorage.getItem(demoSettingsKey))
-      expect(saved.selectedVoice).toBe('bella')
     })
   })
 

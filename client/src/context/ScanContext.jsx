@@ -9,7 +9,6 @@
  * mode toggle is locked behind Escape so a child cannot accidentally exit.
  */
 import { createContext, useContext, useState, useCallback } from 'react'
-import { getVoiceById } from '../data/voices'
 
 const ScanContext = createContext(null)
 
@@ -22,26 +21,18 @@ const DEFAULT_PROFILE = {
   scanHighlightColor: '#FFD700',
   voiceRate: 0.85,
   voicePitch: 1.0,
-  ttsProvider: 'BROWSER',
-  ttsVoiceId: undefined,
 }
 
 export function ScanProvider({ children }) {
   const [isChildMode, setIsChildMode] = useState(false)
   const [activeChild, setActiveChild] = useState(null)
   // scanProfile is derived: activeChild's settings or defaults.
-  // ttsProvider/ttsVoiceId resolve the child's saved voice selection (an
-  // app-internal id like "bella") into what useSpeech actually needs to
-  // call ElevenLabs correctly — see data/voices.js.
-  const voiceMeta = getVoiceById(activeChild?.ttsPreference?.voiceId ?? 'default')
   const scanProfile = activeChild
     ? {
         scanSpeedMs: activeChild.scanSpeedMs ?? DEFAULT_PROFILE.scanSpeedMs,
         scanHighlightColor: activeChild.scanHighlightColor ?? DEFAULT_PROFILE.scanHighlightColor,
         voiceRate: activeChild.voiceRate ?? DEFAULT_PROFILE.voiceRate,
         voicePitch: activeChild.voicePitch ?? DEFAULT_PROFILE.voicePitch,
-        ttsProvider: voiceMeta.provider,
-        ttsVoiceId: voiceMeta.elevenLabsVoiceId,
       }
     : DEFAULT_PROFILE
 

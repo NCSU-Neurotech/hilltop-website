@@ -3,9 +3,12 @@
  *
  * Comprehensive settings page:
  * - Accessibility (font size, high contrast, dark mode)
- * - Voice & Speech (TTS provider, voice selection, rate, pitch)
  * - Scanner (scan speed, highlight color)
  * - Module Management (enable/disable categories)
+ *
+ * There's no voice selection here — ElevenLabs is the only voice, and
+ * useSpeech falls back to the browser's Web Speech API silently if
+ * ElevenLabs isn't available. Never surfaced as a user-facing choice.
  */
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
@@ -13,7 +16,6 @@ import { useAccessibility } from '../context/AccessibilityContext'
 import { useScan } from '../context/ScanContext'
 import { useAuth } from '../context/AuthContext'
 import { getEffectiveDemoChild } from '../demo/demoData'
-import { VOICES } from '../data/voices'
 
 const API = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
@@ -54,7 +56,6 @@ export default function Settings() {
   const [fontSize, setFontSize] = useState(1.0)
   const [highContrast, setHighContrast] = useState(false)
   const [darkMode, setDarkMode] = useState(null)
-  const [selectedVoice, setSelectedVoice] = useState('default')
   const [scanSpeed, setScanSpeed] = useState(1200)
   const [highlightColor, setHighlightColor] = useState('#FFD700')
   const [enabledCategories, setEnabledCategories] = useState(['games', 'learn', 'stories', 'sound-boards', 'communicate'])
@@ -78,7 +79,6 @@ export default function Settings() {
       setHighlightColor(effective.scanHighlightColor ?? '#FFD700')
       setEnabledCategories(effective.enabledCategories ?? ['games', 'learn', 'stories', 'sound-boards', 'communicate'])
       setEnabledLearnTiers(effective.enabledLearnTiers ?? ['beginner', 'intermediate', 'advanced'])
-      setSelectedVoice(effective.ttsPreference?.voiceId ?? 'default')
       setLoading(false)
       return
     }
@@ -98,9 +98,6 @@ export default function Settings() {
         setHighlightColor(data.scanHighlightColor || '#FFD700')
         setEnabledCategories(data.enabledCategories || ['games', 'learn', 'stories', 'sound-boards', 'communicate'])
         setEnabledLearnTiers(data.enabledLearnTiers || ['beginner', 'intermediate', 'advanced'])
-        if (data.ttsPreference) {
-          setSelectedVoice(data.ttsPreference.voiceId || 'default')
-        }
       })
       .catch(() => navigate('/dashboard', { replace: true }))
       .finally(() => setLoading(false))
@@ -126,8 +123,6 @@ export default function Settings() {
       // In demo mode, save to localStorage using the same field names as the
       // real child object so every demo-mode reader (ChildHub, accessibility
       // sync) can merge it in identically via getEffectiveDemoChild().
-      const selectedVoiceData = VOICES.find((v) => v.id === selectedVoice)
-
       if (isDemo) {
         const demoSettingsKey = `demo-settings-${childId}`
         localStorage.setItem(
@@ -140,14 +135,6 @@ export default function Settings() {
             scanHighlightColor: highlightColor,
             enabledCategories,
             enabledLearnTiers,
-            ttsPreference: selectedVoiceData
-              ? {
-                  id: selectedVoiceData.id,
-                  provider: selectedVoiceData.provider,
-                  voiceId: selectedVoiceData.id,
-                  voiceName: selectedVoiceData.name,
-                }
-              : undefined,
           })
         )
       } else {
@@ -168,21 +155,6 @@ export default function Settings() {
         })
 
         if (!childRes.ok) throw new Error('Failed to update child')
-
-        // Update TTS preference
-        if (selectedVoiceData) {
-          await fetch(`${API}/api/children/${childId}/tts-preference`, {
-            method: 'PATCH',
-            credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              provider: selectedVoiceData.provider,
-              voiceId: selectedVoice,
-              voiceName: selectedVoiceData.name,
-              gender: selectedVoiceData.gender,
-            }),
-          }).catch(() => {})
-        }
       }
 
       // Update contexts
@@ -295,33 +267,6 @@ export default function Settings() {
                 </button>
               ))}
             </div>
-          </div>
-        </section>
-
-        {/* Voice & Speech Section */}
-        <section className="bg-[#1e293b] rounded-2xl p-6 border border-slate-700/60 space-y-5">
-          <h2 className="text-white font-black text-lg">🎤 Voice & Speech</h2>
-
-          <div>
-            <label className="block text-white font-semibold text-sm mb-3">Select Voice</label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {VOICES.map((voice) => (
-                <button
-                  key={voice.id}
-                  onClick={() => setSelectedVoice(voice.id)}
-                  className={`py-3 px-4 rounded-lg font-semibold text-sm text-left transition-all ${
-                    selectedVoice === voice.id
-                      ? 'bg-[#FFD700] text-[#0f172a]'
-                      : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-                  }`}
-                >
-                  {voice.name}
-                </button>
-              ))}
-            </div>
-            <p className="text-slate-400 text-xs mt-3">
-              💡 ElevenLabs voices require API key. Browser voice always works offline.
-            </p>
           </div>
         </section>
 
