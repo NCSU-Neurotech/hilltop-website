@@ -31,6 +31,12 @@ model Facility {
   ttsCharUsedToday  Int          @default(0)
   ttsLastResetDate  DateTime     @default(now())
   createdAt         DateTime     @default(now())
+
+  // Password reset — resetTokenHash stores a SHA-256 hash of the token
+  // emailed to the facility, never the raw token itself, so a database leak
+  // alone can't be used to reset a password.
+  resetTokenHash      String?
+  resetTokenExpiresAt DateTime?
 }
 
 model AuditLog {

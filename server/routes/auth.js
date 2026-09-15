@@ -1,10 +1,12 @@
 const express = require('express')
+const crypto = require('crypto')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 const rateLimit = require('express-rate-limit')
 const { PrismaClient } = require('@prisma/client')
 const { requireAuth, JWT_SECRET } = require('../middleware/auth')
 const { logAction } = require('../utils/auditLog')
+const { sendMail } = require('../utils/mailer')
 
 const router = express.Router()
 const prisma = new PrismaClient()
@@ -42,6 +44,20 @@ const signupLimiter = rateLimit({
   legacyHeaders: false,
   message: { error: 'Too many signup attempts. Please try again later.' },
 })
+
+const resetRequestLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many reset requests. Please try again later.' },
+})
+
+const RESET_TOKEN_TTL_MS = 30 * 60 * 1000 // 30 minutes
+
+function hashResetToken(rawToken) {
+  return crypto.createHash('sha256').update(rawToken).digest('hex')
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // POST /api/auth/signup
@@ -154,6 +170,86 @@ router.get('/me', requireAuth, async (req, res) => {
   } catch (err) {
     console.error('Auth me error:', err)
     res.status(500).json({ error: 'Failed to fetch facility info' })
+  }
+})
+
+// ─────────────────────────────────────────────────────────────────────────────
+// POST /api/auth/forgot-password
+// Always responds the same way regardless of whether the email matches a
+// facility, so this endpoint can't be used to discover which emails have
+// accounts.
+// ─────────────────────────────────────────────────────────────────────────────
+router.post('/forgot-password', resetRequestLimiter, async (req, res) => {
+  const GENERIC_RESPONSE = { ok: true, message: 'If that email has an account, a reset link has been sent.' }
+
+  try {
+    const { email } = req.body
+    if (!email) return res.status(400).json({ error: 'Email required' })
+
+    const facility = await prisma.facility.findUnique({ where: { email } })
+    if (!facility) return res.json(GENERIC_RESPONSE)
+
+    const rawToken = crypto.randomBytes(32).toString('hex')
+    await prisma.facility.update({
+      where: { id: facility.id },
+      data: {
+        resetTokenHash: hashResetToken(rawToken),
+        resetTokenExpiresAt: new Date(Date.now() + RESET_TOKEN_TTL_MS),
+      },
+    })
+
+    const resetUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/reset-password?token=${rawToken}`
+    await sendMail({
+      to: facility.email,
+      subject: 'Reset your AssistiveGames password',
+      text: `Reset your facility's password here: ${resetUrl}\n\nThis link expires in 30 minutes. If you didn't request this, ignore this email.`,
+      html: `<p>Reset your facility's password by clicking the link below.</p><p><a href="${resetUrl}">${resetUrl}</a></p><p>This link expires in 30 minutes. If you didn't request this, ignore this email.</p>`,
+    })
+
+    res.json(GENERIC_RESPONSE)
+  } catch (err) {
+    console.error('Forgot password error:', err)
+    res.status(500).json({ error: 'Failed to process request' })
+  }
+})
+
+// ─────────────────────────────────────────────────────────────────────────────
+// POST /api/auth/reset-password
+// ─────────────────────────────────────────────────────────────────────────────
+router.post('/reset-password', async (req, res) => {
+  try {
+    const { token, password } = req.body
+    if (!token || !password) {
+      return res.status(400).json({ error: 'Token and new password required' })
+    }
+    if (password.length < 8) {
+      return res.status(400).json({ error: 'Password must be at least 8 characters' })
+    }
+
+    const facility = await prisma.facility.findFirst({
+      where: { resetTokenHash: hashResetToken(token) },
+    })
+
+    if (!facility || !facility.resetTokenExpiresAt || facility.resetTokenExpiresAt < new Date()) {
+      return res.status(400).json({ error: 'This reset link is invalid or has expired' })
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 12)
+    await prisma.facility.update({
+      where: { id: facility.id },
+      data: {
+        password: hashedPassword,
+        resetTokenHash: null,
+        resetTokenExpiresAt: null,
+      },
+    })
+
+    await logAction(facility.id, 'reset_password', 'Facility', facility.id)
+
+    res.json({ ok: true })
+  } catch (err) {
+    console.error('Reset password error:', err)
+    res.status(500).json({ error: 'Failed to reset password' })
   }
 })
 

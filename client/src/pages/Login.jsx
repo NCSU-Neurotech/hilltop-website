@@ -66,6 +66,12 @@ export default function Login() {
             required
           />
 
+          <p className="text-right -mt-2">
+            <Link to="/forgot-password" className="text-sm text-slate-400 hover:text-[#FFD700] transition-colors">
+              Forgot password?
+            </Link>
+          </p>
+
           <button
             type="submit"
             disabled={loading}

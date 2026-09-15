@@ -10,6 +10,8 @@ const API = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 // Pages
 import Signup                from './pages/Signup'
 import Login                 from './pages/Login'
+import ForgotPassword        from './pages/ForgotPassword'
+import ResetPassword         from './pages/ResetPassword'
 import Dashboard             from './pages/Dashboard'
 import ChildHub              from './pages/ChildHub'
 import Games                 from './pages/Games'
@@ -171,6 +173,8 @@ export default function App() {
         <Route path="/"       element={<Navigate to="/dashboard" replace />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/login"  element={<Login />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password"  element={<ResetPassword />} />
 
         {/* Storytime listener — public (child joins on any device, no login) */}
         <Route path="/storytime/:code" element={<StorytimeListener />} />
