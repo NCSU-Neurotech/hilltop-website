@@ -1,0 +1,21 @@
+name: Keep Supabase Alive
+
+# Supabase's free tier pauses a project after ~7 days with no database
+# activity. This hits the server's /api/keepalive endpoint (a trivial DB
+# query) daily, well under that threshold.
+#
+# Setup: add a repository secret named KEEPALIVE_URL set to the deployed
+# server's base URL (e.g. https://your-app.up.railway.app), no trailing
+# slash — Settings > Secrets and variables > Actions > New repository secret.
+
+on:
+  schedule:
+    - cron: '0 12 * * *'
+  workflow_dispatch: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping keepalive endpoint
+        run: curl -fsS "${{ secrets.KEEPALIVE_URL }}/api/keepalive"

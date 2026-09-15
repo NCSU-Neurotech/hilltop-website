@@ -4,6 +4,7 @@ const { createServer } = require('http')
 const { Server }   = require('socket.io')
 const cors         = require('cors')
 const cookieParser = require('cookie-parser')
+const { PrismaClient } = require('@prisma/client')
 const authRouter         = require('./routes/auth')
 const childrenRouter     = require('./routes/children')
 const progressRouter     = require('./routes/progress')
@@ -34,6 +35,21 @@ app.use('/api/tts',           ttsRouter)
 app.use('/api/soundboards',   soundboardsRouter)
 
 app.get('/api/health', (_req, res) => res.json({ status: 'ok' }))
+
+// Supabase's free tier pauses a project after a stretch of no database
+// activity — a plain HTTP health check doesn't touch the database, so it
+// doesn't prevent that. This runs a trivial query instead, for an external
+// scheduler (see .github/workflows/keep-alive.yml) to ping periodically.
+const keepAlivePrisma = new PrismaClient()
+app.get('/api/keepalive', async (_req, res) => {
+  try {
+    await keepAlivePrisma.$queryRaw`SELECT 1`
+    res.json({ status: 'ok' })
+  } catch (err) {
+    console.error('Keepalive query failed:', err)
+    res.status(503).json({ status: 'error' })
+  }
+})
 
 // ---------------------------------------------------------------------------
 // Socket.io — multiplayer room system
