@@ -3,52 +3,89 @@
  *
  * 12 modules organised in three difficulty tiers.
  * In Child Mode tiles are wrapped in ScanGroup.
+ *
+ * Tier sections are filtered by the child's `enabledLearnTiers` (set in
+ * Settings) — undefined/null means "not configured yet, show everything";
+ * an explicit array (even one caregivers narrowed down) is respected as-is.
  */
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useScan } from '../context/ScanContext'
+import { useAuth } from '../context/AuthContext'
 import { ScanGroup } from '../components/ScanGroup'
 import ScanItem from '../components/ScanItem'
+import { getEffectiveDemoChild } from '../demo/demoData'
+import MODULES from '../learn'
+
+const API = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
 const TIERS = [
   {
+    tier: 'beginner',
     label: 'Beginner — Ages 3 to 7',
     color: '#22c55e',
     modules: [
-      { id: 'alphabet',   title: 'Alphabet',   emoji: '🔤', desc: 'A to Z with pictures',        color: '#3b82f6', cards: 26 },
-      { id: 'numbers',    title: 'Numbers',    emoji: '🔢', desc: 'Count from 1 to 10',           color: '#22c55e', cards: 10 },
-      { id: 'colors',     title: 'Colors',     emoji: '🎨', desc: 'Learn the rainbow',            color: '#ec4899', cards: 10 },
-      { id: 'shapes',     title: 'Shapes',     emoji: '🔷', desc: 'Circles, squares and more',    color: '#f97316', cards: 8  },
-      { id: 'animals',    title: 'Animals',    emoji: '🦁', desc: 'Meet furry friends',           color: '#84cc16', cards: 12 },
-      { id: 'body-parts', title: 'Body Parts', emoji: '🧠', desc: 'Head, hands, feet and more',  color: '#06b6d4', cards: 10 },
+      { id: 'alphabet',   title: 'Alphabet',   emoji: '🔤', desc: 'A to Z with pictures',       color: '#3b82f6' },
+      { id: 'numbers',    title: 'Numbers',    emoji: '🔢', desc: 'Count from 1 to 20',          color: '#22c55e' },
+      { id: 'colors',     title: 'Colors',     emoji: '🎨', desc: 'Learn the rainbow',           color: '#ec4899' },
+      { id: 'shapes',     title: 'Shapes',     emoji: '🔷', desc: 'Circles, squares and more',   color: '#f97316' },
+      { id: 'animals',    title: 'Animals',    emoji: '🦁', desc: 'Meet furry friends',          color: '#84cc16' },
+      { id: 'body-parts', title: 'Body Parts', emoji: '🧠', desc: 'Head, hands, feet and more',  color: '#06b6d4' },
     ],
   },
   {
+    tier: 'intermediate',
     label: 'Intermediate — Ages 8 to 12',
     color: '#f59e0b',
     modules: [
-      { id: 'sight-words', title: 'Sight Words', emoji: '📖', desc: 'Common reading words',      color: '#f59e0b', cards: 20 },
-      { id: 'addition',    title: 'Addition',    emoji: '➕', desc: 'Simple adding up to 10',     color: '#22c55e', cards: 12 },
-      { id: 'emotions',    title: 'Emotions',    emoji: '😊', desc: 'Name how you feel',          color: '#a855f7', cards: 10 },
+      { id: 'sight-words', title: 'Sight Words', emoji: '📖', desc: 'Common reading words',   color: '#f59e0b' },
+      { id: 'addition',    title: 'Addition',    emoji: '➕', desc: 'Simple adding, with counting', color: '#22c55e' },
+      { id: 'emotions',    title: 'Emotions',    emoji: '😊', desc: 'Name how you feel',       color: '#a855f7' },
     ],
   },
   {
+    tier: 'advanced',
     label: 'Advanced — Ages 13 to 17',
     color: '#ef4444',
     modules: [
-      { id: 'science-facts',    title: 'Science Facts',    emoji: '🔬', desc: 'How the world works',       color: '#06b6d4', cards: 10 },
-      { id: 'world-geography',  title: 'World Geography',  emoji: '🌍', desc: 'Continents and landmarks',  color: '#f97316', cards: 10 },
-      { id: 'vocabulary',       title: 'Vocabulary',       emoji: '📝', desc: 'Words that inspire',        color: '#8b5cf6', cards: 12 },
+      { id: 'science-facts',   title: 'Science Facts',   emoji: '🔬', desc: 'How the world works',      color: '#06b6d4' },
+      { id: 'world-geography', title: 'World Geography', emoji: '🌍', desc: 'Continents and landmarks', color: '#f97316' },
+      { id: 'vocabulary',      title: 'Vocabulary',      emoji: '📝', desc: 'Words that inspire',       color: '#8b5cf6' },
     ],
   },
-]
-
-// Flat list of all modules for ScanGroup (child mode scans all at once)
-const ALL_MODULES = TIERS.flatMap((t) => t.modules)
+].map((section) => ({
+  ...section,
+  modules: section.modules.map((mod) => ({ ...mod, cards: MODULES[mod.id]?.cards.length ?? 0 })),
+}))
 
 export default function Learn() {
   const { childId } = useParams()
   const navigate    = useNavigate()
   const { isChildMode, scanProfile } = useScan()
+  const { isDemo } = useAuth()
+
+  const [enabledLearnTiers, setEnabledLearnTiers] = useState(null)
+
+  useEffect(() => {
+    if (isDemo) {
+      const effective = getEffectiveDemoChild(childId)
+      setEnabledLearnTiers(effective?.enabledLearnTiers ?? null)
+      return
+    }
+    fetch(`${API}/api/children/${childId}`, { credentials: 'include' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => setEnabledLearnTiers(data?.enabledLearnTiers ?? null))
+      .catch(() => {})
+  }, [childId, isDemo])
+
+  // undefined/null = not configured yet, show everything. An explicit
+  // (even empty) array is a real caregiver choice — respect it as-is.
+  const visibleTiers = Array.isArray(enabledLearnTiers)
+    ? TIERS.filter((t) => enabledLearnTiers.includes(t.tier))
+    : TIERS
+
+  // Flat list of visible modules for ScanGroup (child mode scans all at once)
+  const ALL_MODULES = visibleTiers.flatMap((t) => t.modules)
 
   function goTo(id) {
     navigate(`/dashboard/child/${childId}/learn/${id}`)
@@ -57,7 +94,15 @@ export default function Learn() {
   // ── Caregiver view: tier sections ────────────────────────────────────────
   const caregiverContent = (
     <div className="flex flex-col gap-10 w-full max-w-3xl">
-      {TIERS.map((tier) => (
+      {visibleTiers.length === 0 && (
+        <p className="text-slate-400 text-sm text-center">
+          No learn tiers are enabled for this child. Enable some in{' '}
+          <Link to={`/dashboard/child/${childId}/settings`} className="text-[#FFD700] hover:underline">
+            Settings
+          </Link>.
+        </p>
+      )}
+      {visibleTiers.map((tier) => (
         <section key={tier.label} className="flex flex-col gap-4">
           <div className="flex items-center gap-3">
             <span
