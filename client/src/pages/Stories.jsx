@@ -1,8 +1,10 @@
 /**
  * Stories hub — /dashboard/child/:childId/stories
  *
- * Lists 10 classic childhood stories with resume-progress badges.
- * Child mode: ScanGroup wraps tiles. Caregiver mode: Group Storytime launcher shown.
+ * Lists every story (stories/index.js) plus any standalone read-along
+ * videos (stories/videos.js — team-uploaded, no story attached) in one
+ * grid, with resume-progress badges on stories. Child mode: ScanGroup
+ * wraps tiles. Caregiver mode: Group Storytime launcher also shown.
  */
 import { useMemo } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
@@ -10,9 +12,15 @@ import { useScan } from '../context/ScanContext'
 import { ScanGroup } from '../components/ScanGroup'
 import ScanItem from '../components/ScanItem'
 import STORIES_DATA from '../stories/index'
+import { getStandaloneVideos } from '../stories/videos'
 
 // Build the list from the data source so page counts are always accurate
 const STORIES = Object.values(STORIES_DATA)
+
+// Standalone read-along videos (no linked story) join the same grid as a
+// distinct tile kind — story-linked videos are reachable from within that
+// story's reader instead, so they don't need a second entry point here.
+const STANDALONE_VIDEOS = getStandaloneVideos()
 
 function progressKey(childId, storyId) { return `ag-story-${childId}-${storyId}` }
 
@@ -40,6 +48,10 @@ export default function Stories() {
     navigate(`/dashboard/child/${childId}/stories/${story.id}`)
   }
 
+  function goToVideo(video) {
+    navigate(`/dashboard/child/${childId}/stories/video/${video.id}`)
+  }
+
   const grid = (
     <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-5 w-full max-w-4xl">
       {STORIES.map((story) =>
@@ -52,6 +64,19 @@ export default function Stories() {
           <button key={story.id} onClick={() => goTo(story)}
             className="rounded-2xl text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FFD700]">
             <StoryCard story={story} resumePage={resumeMap[story.id]} />
+          </button>
+        )
+      )}
+      {STANDALONE_VIDEOS.map((video) =>
+        isChildMode ? (
+          <ScanItem key={video.id} onSelect={() => goToVideo(video)} as="div"
+            style={{ minWidth: 0, minHeight: 0 }} className="rounded-2xl">
+            <VideoCard video={video} />
+          </ScanItem>
+        ) : (
+          <button key={video.id} onClick={() => goToVideo(video)}
+            className="rounded-2xl text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FFD700]">
+            <VideoCard video={video} />
           </button>
         )
       )}
@@ -140,6 +165,23 @@ function StoryCard({ story, resumePage }) {
             Resume →
           </p>
         )}
+      </div>
+    </div>
+  )
+}
+
+function VideoCard({ video }) {
+  return (
+    <div className="relative flex flex-col items-center justify-center gap-3 p-4 rounded-2xl
+                    border-2 border-transparent hover:border-white/20 transition-all w-full"
+      style={{ backgroundColor: '#a78bfa22', minHeight: 145 }}>
+      <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full text-xs font-bold bg-[#a78bfa] text-white">
+        VIDEO
+      </div>
+      <span className="text-5xl leading-none" aria-hidden>{video.thumbnail}</span>
+      <div className="text-center">
+        <p className="text-white font-black text-sm leading-tight">{video.title}</p>
+        <p className="text-slate-400 text-xs mt-1">Read by {video.reader}</p>
       </div>
     </div>
   )

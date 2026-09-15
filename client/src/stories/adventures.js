@@ -512,12 +512,244 @@ const undergroundLibrary = {
   },
 }
 
+const seaKingdom = {
+  id: 'sea-kingdom',
+  title: 'The Under-the-Sea Kingdom',
+  emoji: '🧜',
+  color: '#3b82f6',
+  startNode: 'start',
+  nodes: {
+    start: {
+      illustration: '🌊🐚',
+      text: 'While swimming at the beach, you find a glowing seashell washed up on the sand. When you hold it to your ear, a tiny voice whispers, "The Sea Kingdom needs your help! Blow into the shell to visit us." Do you blow into the shell right away, or look for a grown-up first?',
+      choices: [
+        { label: 'Blow into the shell', next: 'blow_shell' },
+        { label: 'Wave to a grown-up nearby first', next: 'grownup_first' },
+      ],
+    },
+    blow_shell: {
+      illustration: '✨🫧',
+      text: 'You take a deep breath and blow into the shell. A swirl of gentle bubbles wraps around you, and suddenly you can breathe underwater! A friendly sea turtle named Coral paddles up. "Right on time," she says. "Climb on — the Sea Queen is waiting."',
+      choices: [
+        { label: 'Climb onto Coral\'s shell', next: 'meet_queen' },
+      ],
+    },
+    grownup_first: {
+      illustration: '👋🏖️',
+      text: 'You wave over your grown-up and show them the shell. They smile and say, "Let\'s see what happens together." You both blow into the shell, and a swirl of bubbles wraps around you both, letting you breathe underwater side by side. A sea turtle named Coral paddles up to greet you.',
+      choices: [
+        { label: 'Follow Coral together', next: 'meet_queen' },
+      ],
+    },
+    meet_queen: {
+      illustration: '👑🐠',
+      text: 'Coral guides you down, down, down to a shimmering coral palace. The Sea Queen, wrapped in a cloak of starfish, greets you warmly. "Our Kingdom\'s Singing Pearl has gone quiet," she says, "and without its song, the coral reef is losing its colour." She shows you a map with two paths.',
+      choices: [
+        { label: 'Search the Kelp Forest', next: 'kelp_forest' },
+        { label: 'Search the Sunken Ship', next: 'sunken_ship' },
+      ],
+    },
+    kelp_forest: {
+      illustration: '🌿🐡',
+      text: 'You swim into a tall, swaying kelp forest. A shy pufferfish peeks out from behind a frond. "I saw something shiny drop here," it says nervously, "but a curious octopus scooped it up before I could look closer." It points further into the forest.',
+      choices: [
+        { label: 'Follow the pufferfish deeper in', next: 'find_octopus' },
+      ],
+    },
+    sunken_ship: {
+      illustration: '🚢🦑',
+      text: 'You explore an old, gentle sunken ship covered in soft green moss. Inside a barnacle-crusted chest, you find a friendly octopus curled around something round and glowing. "Oh! Is this yours?" the octopus asks, uncurling to show you the Singing Pearl. "I just thought it was so pretty."',
+      choices: [
+        { label: 'Ask the octopus kindly for the pearl', next: 'ending_kind_ask' },
+      ],
+    },
+    find_octopus: {
+      illustration: '🐙💫',
+      text: 'You find the same friendly octopus in a small underwater cave, gently juggling the glowing Singing Pearl between its eight arms, delighted with its new shiny toy.',
+      choices: [
+        { label: 'Offer to trade a pretty shell for the pearl', next: 'ending_trade' },
+        { label: 'Ask kindly for the pearl back', next: 'ending_kind_ask' },
+      ],
+    },
+    ending_kind_ask: {
+      illustration: '🐙💛🎵',
+      text: '"Of course!" says the octopus, handing it over gently. "I did not know it belonged to anyone." You carry the Singing Pearl back to the palace, and the moment it is placed in its coral cradle, a beautiful melody fills the water and every reef bursts back into brilliant colour. The Sea Queen thanks you with a necklace of tiny glowing shells. The End!',
+      choices: null,
+      isEnding: true,
+    },
+    ending_trade: {
+      illustration: '🐚🐙🎵',
+      text: 'You offer the octopus a swirled pink shell from your pocket, and it happily swaps its new toy for the even prettier one. You return the Singing Pearl to its coral cradle, and its melody fills the kingdom once more, painting the reef in every colour of the rainbow. The octopus visits you every day after that, showing off shiny new treasures. The End!',
+      choices: null,
+      isEnding: true,
+    },
+  },
+}
+
+const spaceRace = {
+  id: 'space-race',
+  title: 'The Great Space Race',
+  emoji: '🚀',
+  color: '#8b5cf6',
+  startNode: 'start',
+  nodes: {
+    start: {
+      illustration: '🚀🌌',
+      text: 'You have been chosen as the youngest astronaut ever to join the Great Space Race — a friendly competition to see who can visit the most planets and make it home first! Your rocket has two buttons glowing on the dashboard.',
+      choices: [
+        { label: 'Press the "Fast Route" button', next: 'fast_route' },
+        { label: 'Press the "Scenic Route" button', next: 'scenic_route' },
+      ],
+    },
+    fast_route: {
+      illustration: '💨🪐',
+      text: 'Your rocket zooms through a shortcut past shimmering rings of ice and rock. You are making great time! Suddenly your dashboard beeps — a small asteroid is drifting slowly across your path.',
+      choices: [
+        { label: 'Steer gently around it', next: 'steer_around' },
+        { label: 'Radio for help from Mission Control', next: 'radio_help' },
+      ],
+    },
+    scenic_route: {
+      illustration: '🌠🛰️',
+      text: 'You glide past a dazzling field of slow-drifting stardust that sparkles like glitter against your windows. Floating nearby is another racer\'s rocket — stuck, with its little engine sputtering.',
+      choices: [
+        { label: 'Stop to help the stuck racer', next: 'help_racer' },
+        { label: 'Wave hello and continue on your way', next: 'wave_continue' },
+      ],
+    },
+    steer_around: {
+      illustration: '🎮🚀',
+      text: 'You carefully tilt the controls and glide smoothly around the asteroid, not a single scratch on your rocket! Ahead, a ringed planet glows in soft purple and gold — your first stop.',
+      choices: [
+        { label: 'Land on the ringed planet', next: 'ringed_planet' },
+      ],
+    },
+    radio_help: {
+      illustration: '📡👩‍🚀',
+      text: '"Nicely spotted!" says Mission Control cheerfully. They guide you through a perfectly safe path around the asteroid, step by step. You thank them and continue toward a glowing, ringed planet in the distance.',
+      choices: [
+        { label: 'Land on the ringed planet', next: 'ringed_planet' },
+      ],
+    },
+    help_racer: {
+      illustration: '🤝🚀',
+      text: 'You dock alongside the stuck rocket and share a bit of your own fuel through a little connecting tube. "Thank you!" the other racer beams. "Let\'s finish this race together instead of against each other." You both zoom off side by side.',
+      choices: [
+        { label: 'Race together to the finish', next: 'ending_teamwork' },
+      ],
+    },
+    wave_continue: {
+      illustration: '👋🚀',
+      text: 'You wave and continue on your journey, watching the stuck racer grow smaller behind you. A moment later, your conscience tugs at you. You loop back around to check on them after all, and offer a hand.',
+      choices: [
+        { label: 'Help them and finish together', next: 'ending_teamwork' },
+      ],
+    },
+    ringed_planet: {
+      illustration: '🪐🎉',
+      text: 'You touch down gently on the ringed planet, where floating jellyfish-like creatures made of light drift through a purple sky. They chime a welcoming song and gift you a glowing ring to wear on your antenna.',
+      choices: [
+        { label: 'Head home to complete the race', next: 'ending_solo_finish' },
+      ],
+    },
+    ending_teamwork: {
+      illustration: '🏁🤝✨',
+      text: 'You and your new friend cross the finish line at exactly the same moment, engines glowing side by side. Mission Control declares it the first-ever tie in Space Race history — and everyone agrees it is the best ending of all. You spend the victory party swapping stories about the stars you saw along the way. The End!',
+      choices: null,
+      isEnding: true,
+    },
+    ending_solo_finish: {
+      illustration: '🏆🚀🌍',
+      text: 'You guide your rocket back through the stars and land gently on Earth, your glowing ring still sparkling on the antenna. You are welcomed home with cheers and confetti. That night, you fall asleep looking up at the very stars you just visited, already dreaming of your next adventure. The End!',
+      choices: null,
+      isEnding: true,
+    },
+  },
+}
+
+const timeTravelersAttic = {
+  id: 'time-travelers-attic',
+  title: "The Time Traveler's Attic",
+  emoji: '⏳',
+  color: '#f59e0b',
+  startNode: 'start',
+  nodes: {
+    start: {
+      illustration: '🏚️⏳',
+      text: 'While visiting your grandmother\'s house, you find a dusty old clock in the attic with hands that spin backward. When you wind it, the whole room shimmers like heat over summer pavement. Do you wind it once, or twice?',
+      choices: [
+        { label: 'Wind it once', next: 'wind_once' },
+        { label: 'Wind it twice', next: 'wind_twice' },
+      ],
+    },
+    wind_once: {
+      illustration: '🦕🌿',
+      text: 'The room shimmers and fades — and you are standing in a warm, misty jungle full of enormous ferns. A gentle, plant-eating dinosaur as tall as a house munches leaves nearby, completely unbothered by your visit.',
+      choices: [
+        { label: 'Offer the dinosaur a leaf from a nearby branch', next: 'dino_friend' },
+        { label: 'Quietly watch it from a safe distance', next: 'dino_watch' },
+      ],
+    },
+    wind_twice: {
+      illustration: '🏰⚔️',
+      text: 'The room shimmers and fades — and you find yourself just outside a small stone castle, where a young royal messenger is struggling to carry an enormous stack of scrolls across the courtyard.',
+      choices: [
+        { label: 'Help carry the scrolls', next: 'help_messenger' },
+        { label: 'Ask what the scrolls say', next: 'ask_scrolls' },
+      ],
+    },
+    dino_friend: {
+      illustration: '🦕🍃💚',
+      text: 'You hold out a large leaf, and the gentle giant lowers its long neck and takes it softly from your hand. It nudges you affectionately, almost like a very large, very old dog. You spend a peaceful afternoon walking alongside it through the misty ferns.',
+      choices: [
+        { label: 'Wind the clock again to head home', next: 'ending_dino' },
+      ],
+    },
+    dino_watch: {
+      illustration: '👀🦕',
+      text: 'You sit quietly on a mossy rock and watch the dinosaur graze. A little dragonfly the size of a bird lands on your shoulder for a moment before zipping off. You feel like the luckiest person who has ever lived, just sitting here, watching history happen.',
+      choices: [
+        { label: 'Wind the clock again to head home', next: 'ending_dino' },
+      ],
+    },
+    help_messenger: {
+      illustration: '📜🤝',
+      text: 'You catch a few scrolls just before they tumble to the ground. "Thank you kindly, traveler!" the messenger says with a relieved smile. "These are invitations to the harvest festival tonight — will you join us? Everyone is welcome."',
+      choices: [
+        { label: 'Join the harvest festival', next: 'ending_festival' },
+      ],
+    },
+    ask_scrolls: {
+      illustration: '📜❓',
+      text: '"Invitations to tonight\'s harvest festival!" the messenger explains, setting down the stack for a moment to catch their breath. "There will be music, dancing, and the biggest pie you have ever seen. Would you like to come?"',
+      choices: [
+        { label: 'Say yes and join the festival', next: 'ending_festival' },
+      ],
+    },
+    ending_dino: {
+      illustration: '⏳✨🏠',
+      text: 'You wind the old clock once more, and the misty jungle shimmers away into your grandmother\'s dusty attic. You climb downstairs just as she calls you for dinner, buzzing with a story almost nobody would believe — but she just smiles knowingly, like she has a few old-clock stories of her own. The End!',
+      choices: null,
+      isEnding: true,
+    },
+    ending_festival: {
+      illustration: '🎉🥧🏰',
+      text: 'The harvest festival is full of lantern light, cheerful fiddle music, and the biggest pumpkin pie you have ever seen. You dance in the courtyard until the stars come out, and a kind old woman at the festival winks at you in a way that feels strangely familiar. When you wind the clock home, you can\'t help but wonder if she was your grandmother, long, long ago. The End!',
+      choices: null,
+      isEnding: true,
+    },
+  },
+}
+
 const ADVENTURES = {
-  'dragon-mountain':      dragonMountain,
-  'pirates-sea':          piratesSea,
-  'magic-potion':         magicPotion,
-  'cloud-kingdom':        cloudKingdom,
-  'underground-library':  undergroundLibrary,
+  'dragon-mountain':        dragonMountain,
+  'pirates-sea':            piratesSea,
+  'magic-potion':           magicPotion,
+  'cloud-kingdom':          cloudKingdom,
+  'underground-library':    undergroundLibrary,
+  'sea-kingdom':            seaKingdom,
+  'space-race':             spaceRace,
+  'time-travelers-attic':   timeTravelersAttic,
 }
 
 export default ADVENTURES

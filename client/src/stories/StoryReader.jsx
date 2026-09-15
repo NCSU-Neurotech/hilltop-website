@@ -14,6 +14,7 @@ import { ScanGroup } from '../components/ScanGroup'
 import ScanItem from '../components/ScanItem'
 import { useSpeech } from '../hooks/useSpeech'
 import STORIES from './index'
+import { getVideosForStory } from './videos'
 
 // ---------------------------------------------------------------------------
 // Progress persistence
@@ -147,7 +148,14 @@ export default function StoryReader() {
     ? { label: '🏠 Back to Stories', fn: goNext }
     : { label: '→ Next Page',        fn: goNext }
 
-  const actions = [actionReadAgain, actionNext]
+  // Team-uploaded read-along videos for this story (see stories/videos.js) —
+  // offered as an extra option alongside text+TTS, not a replacement for it.
+  const videoActions = getVideosForStory(story.id).map((v) => ({
+    label: `🎥 Watch ${v.reader} read this`,
+    fn: () => { cancel(); navigate(`/dashboard/child/${childId}/stories/video/${v.id}`) },
+  }))
+
+  const actions = [actionReadAgain, actionNext, ...videoActions]
 
   const actionBar = isChildMode ? (
     <ScanGroup active scanSpeedMs={scanProfile.scanSpeedMs} highlightColor={scanProfile.scanHighlightColor}>

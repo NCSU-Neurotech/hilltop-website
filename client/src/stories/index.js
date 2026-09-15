@@ -187,6 +187,113 @@ const rumpelstiltskin = {
   ],
 }
 
+// ---------------------------------------------------------------------------
+// Original everyday-life stories — added for variety beyond classic fairy
+// tales, and deliberately gentle in tone throughout (no villains, danger,
+// or peril — see the fairy tales above for that register instead).
+// ---------------------------------------------------------------------------
+
+const firstDayOfSchool = {
+  id: 'first-day-of-school', title: 'The First Day', emoji: '🎒', color: '#3b82f6',
+  pages: [
+    { illustration: '🌅🎒', text: 'Maya woke up before her alarm even rang. Today was her very first day of school, and her new backpack was already waiting by the door.' },
+    { illustration: '😬🥣', text: 'At breakfast, her tummy felt fluttery, like it was full of little butterflies. "What if I don\'t know anyone?" she asked her dad quietly.' },
+    { illustration: '🤗💛', text: 'Her dad knelt down and smiled. "Everyone feels that way on their first day," he said. "Even the teachers did, once. You are going to do great."' },
+    { illustration: '🚌🏫', text: 'The school bus rumbled up the street. Maya took a deep breath, held her backpack straps tight, and climbed the big steps.' },
+    { illustration: '🚪😮', text: 'Her classroom was bright and colorful, full of books and drawings on the walls. She found a seat near the window and sat down carefully.' },
+    { illustration: '👧🙋', text: 'A girl with curly hair turned around and smiled. "I like your backpack," she said. "I\'m Priya. Do you want to be reading buddies?"' },
+    { illustration: '📚😊', text: 'Maya\'s worried feeling melted away like ice on a sunny day. "Yes!" she said. "I\'m Maya." They picked out a book together about a dragon who loved to bake.' },
+    { illustration: '🎨🖍️', text: 'During art time, they drew pictures side by side and traded crayons whenever one of them needed a color the other had.' },
+    { illustration: '🍎🥪', text: 'At lunch they sat together, and Maya traded half her apple for half of Priya\'s sandwich. It tasted better than any lunch she\'d had before.' },
+    { illustration: '🔔🏃', text: 'When the final bell rang, Maya almost couldn\'t believe the day was over already. It had gone by so fast, full of new things.' },
+    { illustration: '🎒🌆', text: 'On the bus ride home, Maya smiled the whole way. Tomorrow, she thought, she would show Priya her favorite book too. The End.' },
+  ],
+}
+
+const newFriendAtThePark = {
+  id: 'new-friend-at-the-park', title: 'The New Friend at the Park', emoji: '🛝', color: '#22c55e',
+  pages: [
+    { illustration: '☀️🛝', text: 'It was a warm Saturday, and Leo raced ahead of his mom toward the playground, straight for his favorite spot: the tall red slide.' },
+    { illustration: '🧍👀', text: 'At the bottom of the slide sat a boy Leo had never seen before, quietly watching the other kids play from his wheelchair.' },
+    { illustration: '🤔💭', text: 'Leo wasn\'t sure what to say at first. He slowed down and walked over instead of running past like he usually did.' },
+    { illustration: '👋😊', text: '"Hi, I\'m Leo," he said. "Want to race cars down the ramp with me?" The boy\'s face lit up. "I\'m Sam. Yes — I have a really fast one!"' },
+    { illustration: '🚗💨', text: 'They set their toy cars at the top of the ramp and let go together. Sam\'s little blue car zoomed all the way to the bottom first.' },
+    { illustration: '🎉😆', text: '"You won!" Leo cheered. They raced their cars again and again, laughing every time one of them tipped over sideways.' },
+    { illustration: '🐦🌳', text: 'Then they noticed a bird building a nest in the tree above them, and they sat quietly together, watching it carry twig after twig.' },
+    { illustration: '🍪🥤', text: 'Leo\'s mom brought over a snack to share. "Room for one more friend?" she asked, and Sam grinned and scooted closer.' },
+    { illustration: '🛝🤝', text: 'Before they left, Leo showed Sam the smooth path beside the slide, and they raced their cars down that too, side by side.' },
+    { illustration: '📅✨', text: '"Same time next Saturday?" Sam asked as his mom pushed his chair toward the gate. "Definitely," said Leo. He couldn\'t wait already. The End.' },
+  ],
+}
+
+const classGarden = {
+  id: 'class-garden', title: 'Our Class Garden', emoji: '🌱', color: '#84cc16',
+  pages: [
+    { illustration: '🌱📦', text: 'Ms. Torres carried a big box of seed packets into the classroom. "Today," she said, "we are going to grow our very own garden."' },
+    { illustration: '🌻🫘🥕', text: 'Inside were tiny seeds of every kind — sunflowers, beans, and carrots. Each one looked too small to ever become a real plant.' },
+    { illustration: '🪴✋', text: 'Every student got a little pot of soil. Ben pushed his bean seed gently into the dirt, just like Ms. Torres showed him.' },
+    { illustration: '💧☀️', text: 'They watered their pots carefully and set them on the sunny windowsill. "Now," said Ms. Torres, "the hardest part begins: waiting."' },
+    { illustration: '😴🌱', text: 'The next morning, nothing had changed. Ben frowned at his pot. "Maybe it\'s broken," he said. Ms. Torres laughed kindly. "Good things take time."' },
+    { illustration: '🌤️👀', text: 'Every day the class checked their pots after lunch. For three whole days, the soil just sat there, plain and brown.' },
+    { illustration: '🌿😲', text: 'On the fourth day, Ben gasped. A tiny green sprout had pushed its way up through the dirt, curling toward the light.' },
+    { illustration: '📏🌿', text: 'Every day it grew a little taller. The class measured it with a ruler and marked the height on a big chart by the door.' },
+    { illustration: '🌻🌻🌻', text: 'Weeks later, they moved all the pots outside to the school garden bed, where the plants had room to stretch out and grow even bigger.' },
+    { illustration: '🥕🍽️', text: 'By the end of the season, the carrots were ready to pull. The whole class shared a salad made from vegetables they had grown themselves.' },
+    { illustration: '🌻🎉', text: 'Ben\'s bean plant grew taller than he was. He named it Beanie and promised to visit it all summer long. The End.' },
+  ],
+}
+
+const oceanCleanupCrew = {
+  id: 'ocean-cleanup-crew', title: 'The Ocean Cleanup Crew', emoji: '🌊', color: '#06b6d4',
+  pages: [
+    { illustration: '🏖️🪣', text: 'Every Saturday morning, Nadia and her grandpa walked down to the beach together, each carrying a bucket and a pair of gloves.' },
+    { illustration: '🐢😟', text: 'One day they found a small sea turtle tangled in a bit of old fishing net near the tide pools, struggling weakly to move.' },
+    { illustration: '✂️🐢', text: 'Grandpa knelt down slowly and carefully snipped the net away, strand by strand, while Nadia held the turtle steady and calm.' },
+    { illustration: '🐢🌊👋', text: 'Free at last, the little turtle paused, looked at them both, and then paddled off into the waves. Nadia waved until she couldn\'t see it anymore.' },
+    { illustration: '🤔💡', text: '"There\'s so much trash on this beach," Nadia said. "What if we asked our whole class to help clean it up?"' },
+    { illustration: '📋👦👧', text: 'The next week, ten kids from her class showed up with buckets and gloves of their own, ready for their very first cleanup.' },
+    { illustration: '🍾🥤🗑️', text: 'They picked up bottle caps, old straws, and tangled bits of rope, sorting everything into bags for trash and bags for recycling.' },
+    { illustration: '🦀😄', text: 'Along the way they spotted crabs scuttling sideways and tiny fish darting through the shallow water, now a little safer than before.' },
+    { illustration: '⚖️🏆', text: 'By the end of the morning, they had filled six whole bags. Nadia\'s grandpa weighed them on his fishing scale: nearly twenty pounds of trash!' },
+    { illustration: '📅🔁', text: 'They decided to come back every single month. "Small hands," Grandpa said, "can still make a very big difference."' },
+    { illustration: '🐢🌅', text: 'That evening, Nadia watched the sunset over the clean stretch of sand and thought about the little turtle, swimming free somewhere out there. The End.' },
+  ],
+}
+
+const lanternFestivalNight = {
+  id: 'lantern-festival-night', title: 'Lantern Festival Night', emoji: '🏮', color: '#ef4444',
+  pages: [
+    { illustration: '🏮🧵', text: 'For weeks, Wei Lin and her grandmother had folded and glued paper lanterns, getting ready for the Lantern Festival at last.' },
+    { illustration: '👵📖', text: '"This festival is very old," her grandmother explained, "older than your grandmother\'s grandmother. It celebrates light, family, and togetherness."' },
+    { illustration: '🎨🖌️', text: 'Wei Lin painted a rabbit onto her lantern, because her grandmother said a rabbit lives on the moon and pounds rice cakes all night long.' },
+    { illustration: '🍜👨‍👩‍👧', text: 'That evening, the whole family gathered around the table for a big bowl of warm noodle soup, sharing stories from the week.' },
+    { illustration: '🌙🏮', text: 'When the moon rose full and bright, Wei Lin\'s family walked outside, each one carrying a glowing paper lantern on a long stick.' },
+    { illustration: '🏘️🏮🏮🏮', text: 'The whole street glowed. Neighbors carried lanterns too — some shaped like fish, some like stars, some like dragons with long, curling tails.' },
+    { illustration: '🥮🍡', text: 'They stopped at a stand selling sweet rice cakes, and Wei Lin\'s grandmother bought one for everyone to share along the way.' },
+    { illustration: '🎇🎆', text: 'In the town square, a dragon dance wound through the crowd, and everyone clapped and cheered as the long dragon puppet swirled past.' },
+    { illustration: '🌕👀', text: 'Wei Lin looked up at the big, round moon and squinted, trying to see if she could spot the rabbit her grandmother told her about.' },
+    { illustration: '🏮💭', text: '"I think I see him!" she said, pointing. Her grandmother laughed warmly. "Now you always will, every time you look up."' },
+    { illustration: '🏮❤️', text: 'They walked home slowly, lanterns glowing softly in the dark, and Wei Lin held her grandmother\'s hand the whole way. The End.' },
+  ],
+}
+
+const miasMarvelousMachine = {
+  id: 'mias-marvelous-machine', title: 'Mia\'s Marvelous Machine', emoji: '⚙️', color: '#f59e0b',
+  pages: [
+    { illustration: '👵📦🔝', text: 'Every morning, Mia watched her grandma stretch and struggle to reach the cereal box on the very top shelf of the kitchen.' },
+    { illustration: '💡✏️', text: '"There has to be a better way," Mia said to herself, grabbing a pencil and a notebook to start sketching an idea.' },
+    { illustration: '📐🧠', text: 'She drew a long stick with a little claw at the end, like the ones in the arcade machines that grab stuffed toys.' },
+    { illustration: '🧰🥢', text: 'From the garage, she gathered an old wooden spoon, a chip clip, and a roll of tape — everything her invention would need.' },
+    { illustration: '🔧😤', text: 'Her first try flopped over sideways. Her second try dropped the cereal box straight onto the floor with a loud crash.' },
+    { illustration: '😞🔁', text: 'Mia sighed and almost gave up. But she remembered what her teacher always said: "Every inventor fails a few times before they succeed."' },
+    { illustration: '🛠️✨', text: 'She added a rubber band to the clip for extra grip, and taped the spoon handle to a longer cardboard tube for more reach.' },
+    { illustration: '🎯👵', text: 'The next morning, she showed her grandma the finished "Reach-It 3000." Together they aimed it carefully at the cereal box.' },
+    { illustration: '📦🙌', text: 'The claw clicked shut around the box and lifted it gently down. "You did it!" her grandma cheered, giving her a big hug.' },
+    { illustration: '🏆😊', text: 'From then on, the Reach-It 3000 hung by the pantry door, ready anytime something was just a little too high to reach.' },
+    { illustration: '💡🔧', text: 'Mia started a whole notebook of new ideas after that. Her very next project: a machine to help water the plants all by itself. The End.' },
+  ],
+}
+
 const STORIES = {
   cinderella,
   'three-little-pigs':       threeLittlePigs,
@@ -198,6 +305,12 @@ const STORIES = {
   'ugly-duckling':           uglyDuckling,
   'sleeping-beauty':         sleepingBeauty,
   rumpelstiltskin,
+  'first-day-of-school':     firstDayOfSchool,
+  'new-friend-at-the-park':  newFriendAtThePark,
+  'class-garden':            classGarden,
+  'ocean-cleanup-crew':      oceanCleanupCrew,
+  'lantern-festival-night':  lanternFestivalNight,
+  'mias-marvelous-machine':  miasMarvelousMachine,
 }
 
 export default STORIES
