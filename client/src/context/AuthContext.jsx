@@ -18,7 +18,12 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true)
   const [isDemo, setIsDemo] = useState(false)
 
-  // On mount: check demo flag, then real session, then fall back to demo
+  // On mount: check demo flag, then real session. A 401 here just means
+  // "not logged in" — that's the normal state for a first-time visitor and
+  // should show the real login screen, not silently enter demo mode. Demo
+  // mode is only an automatic fallback when the backend itself is
+  // unreachable (the .catch below), so local dev without a running server
+  // still shows a working UI.
   useEffect(() => {
     if (sessionStorage.getItem(DEMO_KEY) === '1') {
       setFacility(DEMO_FACILITY)
@@ -30,18 +35,9 @@ export function AuthProvider({ children }) {
     fetch(`${API}/api/auth/me`, { credentials: 'include' })
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
-        if (data) {
-          setFacility(data.facility)
-        } else {
-          // Fallback to demo mode
-          sessionStorage.setItem(DEMO_KEY, '1')
-          setFacility(DEMO_FACILITY)
-          setIsDemo(true)
-        }
+        if (data) setFacility(data.facility)
       })
       .catch(() => {
-        // Fallback on error — enable demo mode for local testing
-        // This allows testing full UI without backend
         sessionStorage.setItem(DEMO_KEY, '1')
         setFacility(DEMO_FACILITY)
         setIsDemo(true)
