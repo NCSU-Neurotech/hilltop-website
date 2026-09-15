@@ -2,17 +2,23 @@ import { BrowserRouter, Routes, Route, Navigate, useMatch } from 'react-router-d
 import { useEffect } from 'react'
 import { useAuth } from './context/AuthContext'
 import { useScan } from './context/ScanContext'
+import { useAccessibility } from './context/AccessibilityContext'
+import { getEffectiveDemoChild } from './demo/demoData'
+
+const API = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
 // Pages
-import Signup        from './pages/Signup'
-import Login         from './pages/Login'
-import Dashboard     from './pages/Dashboard'
-import ChildHub      from './pages/ChildHub'
-import Games         from './pages/Games'
-import Learn         from './pages/Learn'
-import Stories       from './pages/Stories'
-import Music         from './pages/Music'
-import Communicate   from './pages/Communicate'
+import Signup                from './pages/Signup'
+import Login                 from './pages/Login'
+import Dashboard             from './pages/Dashboard'
+import ChildHub              from './pages/ChildHub'
+import Games                 from './pages/Games'
+import Learn                 from './pages/Learn'
+import Stories               from './pages/Stories'
+import Music                 from './pages/Music'
+import Communicate           from './pages/Communicate'
+import SoundBoards           from './pages/SoundBoards'
+import Settings              from './pages/Settings'
 
 // Games — solo (10 single-switch games)
 import SkyJumper     from './games/SkyJumper'
@@ -35,6 +41,7 @@ import InstrumentPlayground from './instruments/InstrumentPlayground'
 
 // Stories
 import StoryReader          from './stories/StoryReader'
+import VideoReader          from './stories/VideoReader'
 import StorytimeNarrator    from './pages/StorytimeNarrator'
 import StorytimeListener    from './pages/StorytimeListener'
 
@@ -74,11 +81,68 @@ function ChildModeEscapeHandler() {
   return null
 }
 
+// ---------------------------------------------------------------------------
+// Accessibility settings sync
+//
+// AccessibilityProvider is mounted once at the app root and has no idea
+// which child is being viewed. Without this, a child's font-size/contrast/
+// dark-mode settings would never load on refresh (provider resets to
+// hardcoded defaults on every mount) and would bleed into whichever child
+// is viewed next (nothing ever re-applies on navigation). This re-loads the
+// active child's accessibility settings whenever the child route changes,
+// and resets to app defaults when not viewing a specific child at all.
+// ---------------------------------------------------------------------------
+
+function AccessibilitySync() {
+  const match = useMatch('/dashboard/child/:childId/*')
+  const { isDemo } = useAuth()
+  const { updateAccessibility } = useAccessibility()
+  const childId = match?.params?.childId
+
+  useEffect(() => {
+    if (!childId) {
+      updateAccessibility({ fontSizeRem: 1.0, highContrastMode: false, darkModeOverride: null })
+      return
+    }
+
+    if (isDemo) {
+      const effective = getEffectiveDemoChild(childId)
+      if (effective) {
+        updateAccessibility({
+          fontSizeRem: effective.fontSizeRem ?? 1.0,
+          highContrastMode: effective.highContrastMode ?? false,
+          darkModeOverride: effective.darkModeOverride ?? null,
+        })
+      }
+      return
+    }
+
+    let cancelled = false
+    fetch(`${API}/api/children/${childId}`, { credentials: 'include' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (cancelled || !data) return
+        updateAccessibility({
+          fontSizeRem: data.fontSizeRem ?? 1.0,
+          highContrastMode: data.highContrastMode ?? false,
+          darkModeOverride: data.darkModeOverride ?? null,
+        })
+      })
+      .catch(() => {})
+
+    return () => { cancelled = true }
+  }, [childId, isDemo, updateAccessibility])
+
+  return null
+}
+
 function ChildModeEntryButton() {
   const match = useMatch('/dashboard/child/:childId/*')
+  const onSettingsPage = useMatch('/dashboard/child/:childId/settings')
   const { isChildMode, activeChild, enterChildMode } = useScan()
 
-  if (!match || isChildMode) return null
+  // Don't offer to hand the device to the child mid-configuration.
+  if (!match || isChildMode || onSettingsPage) return null
 
   return (
     <button
@@ -101,6 +165,7 @@ export default function App() {
       <a href="#main-content" className="skip-link">Skip to main content</a>
       <ChildModeEscapeHandler />
       <ChildModeEntryButton />
+      <AccessibilitySync />
       <Routes>
         {/* Public */}
         <Route path="/"       element={<Navigate to="/dashboard" replace />} />
@@ -138,6 +203,7 @@ export default function App() {
         {/* Stories hub + reader + storytime */}
         <Route path="/dashboard/child/:childId/stories"                          element={<RequireAuth><Stories /></RequireAuth>} />
         <Route path="/dashboard/child/:childId/stories/:storyId"                 element={<RequireAuth><StoryReader /></RequireAuth>} />
+        <Route path="/dashboard/child/:childId/stories/video/:videoId"           element={<RequireAuth><VideoReader /></RequireAuth>} />
         <Route path="/dashboard/child/:childId/storytime"                        element={<RequireAuth><StorytimeNarrator /></RequireAuth>} />
 
         {/* Learn hub + modules */}
@@ -146,6 +212,12 @@ export default function App() {
 
         {/* Communication board */}
         <Route path="/dashboard/child/:childId/communicate" element={<RequireAuth><Communicate /></RequireAuth>} />
+
+        {/* Sound Boards */}
+        <Route path="/dashboard/child/:childId/sound-boards" element={<RequireAuth><SoundBoards /></RequireAuth>} />
+
+        {/* Settings */}
+        <Route path="/dashboard/child/:childId/settings" element={<RequireAuth><Settings /></RequireAuth>} />
 
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />

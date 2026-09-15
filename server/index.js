@@ -1,13 +1,15 @@
 const express      = require('express')
+const path         = require('path')
 const { createServer } = require('http')
 const { Server }   = require('socket.io')
 const cors         = require('cors')
 const cookieParser = require('cookie-parser')
-const authRouter      = require('./routes/auth')
-const childrenRouter  = require('./routes/children')
-const progressRouter  = require('./routes/progress')
-const commBoardRouter = require('./routes/commBoard')
-const ttsRouter       = require('./routes/tts')
+const authRouter         = require('./routes/auth')
+const childrenRouter     = require('./routes/children')
+const progressRouter     = require('./routes/progress')
+const commBoardRouter    = require('./routes/commBoard')
+const ttsRouter          = require('./routes/tts')
+const soundboardsRouter   = require('./routes/soundboards')
 
 const app  = express()
 const PORT = process.env.PORT || 3001
@@ -17,11 +19,19 @@ app.use(cors({ origin: CLIENT_URL, credentials: true }))
 app.use(express.json())
 app.use(cookieParser())
 
-app.use('/api/auth',       authRouter)
-app.use('/api/children',   childrenRouter)
-app.use('/api/progress',   progressRouter)
-app.use('/api/comm-board', commBoardRouter)
-app.use('/api/tts',        ttsRouter)
+// Sound board audio files (server/public/sounds/<board>/<sound>.mp3) — the
+// seed data and demo data both reference them as relative paths like
+// "/sounds/instruments/piano.mp3", so they need to be served at that exact
+// path. Nothing served this directory before, so no real audio file could
+// ever have played regardless of whether one existed on disk.
+app.use('/sounds', express.static(path.join(__dirname, 'public', 'sounds')))
+
+app.use('/api/auth',          authRouter)
+app.use('/api/children',      childrenRouter)
+app.use('/api/progress',      progressRouter)
+app.use('/api/comm-board',    commBoardRouter)
+app.use('/api/tts',           ttsRouter)
+app.use('/api/soundboards',   soundboardsRouter)
 
 app.get('/api/health', (_req, res) => res.json({ status: 'ok' }))
 

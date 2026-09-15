@@ -1,9 +1,9 @@
 /**
- * AuthContext — facility authentication state
+ * AuthContext — Single shared login per facility
  *
- * Wraps API calls to /api/auth/* and exposes the current facility identity
- * to all child components. Protected routes should check `isAuthenticated`.
- * Also supports demo mode (no backend required).
+ * One facility = one email/password. There is no individual caregiver
+ * identity, no roster, no roles — whoever is logged in has full access.
+ * Token payload: { facilityId }. Demo mode still supported via sessionStorage.
  */
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import { DEMO_FACILITY } from '../demo/demoData'
@@ -15,8 +15,8 @@ const DEMO_KEY = 'ag-demo-mode'
 
 export function AuthProvider({ children }) {
   const [facility, setFacility] = useState(null)
-  const [loading, setLoading]   = useState(true)
-  const [isDemo, setIsDemo]     = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [isDemo, setIsDemo] = useState(false)
 
   // On mount: check demo flag, then real session, then fall back to demo
   useEffect(() => {
@@ -26,23 +26,47 @@ export function AuthProvider({ children }) {
       setLoading(false)
       return
     }
+
     fetch(`${API}/api/auth/me`, { credentials: 'include' })
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
         if (data) {
-          setFacility(data)
+          setFacility(data.facility)
         } else {
+          // Fallback to demo mode
           sessionStorage.setItem(DEMO_KEY, '1')
           setFacility(DEMO_FACILITY)
           setIsDemo(true)
         }
       })
       .catch(() => {
+        // Fallback on error — enable demo mode for local testing
+        // This allows testing full UI without backend
         sessionStorage.setItem(DEMO_KEY, '1')
         setFacility(DEMO_FACILITY)
         setIsDemo(true)
       })
       .finally(() => setLoading(false))
+  }, [])
+
+  const signup = useCallback(async (facilityName, email, password) => {
+    const res = await fetch(`${API}/api/auth/signup`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ facilityName, email, password }),
+    })
+
+    if (!res.ok) {
+      const { error } = await res.json()
+      throw new Error(error || 'Signup failed')
+    }
+
+    const data = await res.json()
+    sessionStorage.removeItem(DEMO_KEY)
+    setFacility(data.facility)
+    setIsDemo(false)
+    return data
   }, [])
 
   const login = useCallback(async (email, password) => {
@@ -52,14 +76,16 @@ export function AuthProvider({ children }) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
     })
+
     if (!res.ok) {
       const { error } = await res.json()
       throw new Error(error || 'Login failed')
     }
+
     const data = await res.json()
     sessionStorage.removeItem(DEMO_KEY)
+    setFacility(data.facility)
     setIsDemo(false)
-    setFacility(data)
     return data
   }, [])
 
@@ -76,16 +102,23 @@ export function AuthProvider({ children }) {
       setIsDemo(false)
       return
     }
-    await fetch(`${API}/api/auth/logout`, { method: 'POST', credentials: 'include' })
+
+    try {
+      await fetch(`${API}/api/auth/logout`, { method: 'POST', credentials: 'include' })
+    } catch {}
+
     setFacility(null)
   }, [isDemo])
 
+  const isAuthenticated = !!facility
+
   const value = {
     facility,
-    isAuthenticated: !!facility,
+    isAuthenticated,
     loading,
     isDemo,
     login,
+    signup,
     loginDemo,
     logout,
   }

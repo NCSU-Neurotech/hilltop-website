@@ -7,32 +7,178 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ──────────────────────────────────────────────────────────────────────────────
+// Facility
+//
+// One shared login per facility ("home") — not per-caregiver. Any caregiver
+// at a facility uses the same email/password; there is no roster, no roles,
+// no per-person account. Facilities are provisioned out-of-band (see
+// Signup.jsx — access is requested by email, not self-serve).
+// ──────────────────────────────────────────────────────────────────────────────
+
 model Facility {
-  id        String   @id @default(cuid())
-  name      String
-  email     String   @unique
-  password  String
-  children  Child[]
-  createdAt DateTime @default(now())
+  id                String       @id @default(cuid())
+  name              String
+  email             String       @unique
+  password          String
+  status            String       @default("active") // pending | approved | active | suspended
+  plan              String       @default("free") // free | pro | enterprise
+  approvedAt        DateTime?
+  children          Child[]
+  soundBoards       SoundBoard[]
+  auditLogs         AuditLog[]
+  ttsCharQuotaDaily Int          @default(50000)
+  ttsCharUsedToday  Int          @default(0)
+  ttsLastResetDate  DateTime     @default(now())
+  createdAt         DateTime     @default(now())
 }
 
-model Child {
-  id                  String         @id @default(cuid())
-  facilityId          String
-  facility            Facility       @relation(fields: [facilityId], references: [id], onDelete: Cascade)
-  firstName           String
-  age                 Int
-  avatarId            String         @default("bear")
-  scanSpeedMs         Int            @default(1200)
-  scanHighlightColor  String         @default("#FFD700")
-  voiceRate           Float          @default(0.85)
-  voicePitch          Float          @default(1.0)
-  preferredCategories String[]
-  notes               String         @default("")
-  bookProgress        BookProgress[]
-  commTiles           CommTile[]
-  createdAt           DateTime       @default(now())
+model AuditLog {
+  id         String   @id @default(cuid())
+  facilityId String
+  facility   Facility @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+  childId    String?
+  action     String   // login | edit_child | delete_child | edit_comm_tile | etc.
+  entityType String?  // Child | CommTile | SoundBoard | etc.
+  entityId   String?
+  changes    String?  // JSON stringified
+  timestamp  DateTime @default(now())
+
+  @@index([facilityId, timestamp])
+  @@index([childId, timestamp])
 }
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Child (Updated with accessibility & feature fields)
+// ──────────────────────────────────────────────────────────────────────────────
+
+model Child {
+  id                    String                  @id @default(cuid())
+  facilityId            String
+  facility              Facility                @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+  firstName             String
+  age                   Int
+  avatarId              String                  @default("bear")
+  scanSpeedMs           Int                     @default(1200)
+  scanHighlightColor    String                  @default("#FFD700")
+  voiceRate             Float                   @default(0.85)
+  voicePitch            Float                   @default(1.0)
+  preferredCategories   String[]                @default([])
+
+  // Accessibility
+  fontSizeRem           Float                   @default(1.0) // 0.8 - 2.0 range
+  highContrastMode      Boolean                 @default(false)
+  darkModeOverride      String?                 // null | "light" | "dark"
+
+  // Features
+  enabledCategories     String[]                @default(["games", "learn", "stories", "sound-boards", "communicate"])
+  enabledLearnTiers     String[]                @default(["beginner", "intermediate", "advanced"])
+
+  // TTS & communication
+  ttsPreferenceId       String?
+  ttsPreference         TTSPreference?          @relation(fields: [ttsPreferenceId], references: [id], onDelete: SetNull)
+
+  // Relations
+  bookProgress          BookProgress[]
+  commTiles             CommTile[]
+  caregiverNotes        CaregiverNote[]
+  scheduledActivities   ScheduledActivity[]
+  soundBoardProgress    SoundBoardProgress[]
+
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Caregiver Features (Notes, Scheduled Activities)
+// ──────────────────────────────────────────────────────────────────────────────
+
+model CaregiverNote {
+  id          String   @id @default(cuid())
+  childId     String
+  child       Child    @relation(fields: [childId], references: [id], onDelete: Cascade)
+  content     String
+  isPinned    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([childId, createdAt(sort: Desc)])
+}
+
+model ScheduledActivity {
+  id             String   @id @default(cuid())
+  childId        String
+  child          Child    @relation(fields: [childId], references: [id], onDelete: Cascade)
+  title          String
+  description    String?
+  activityType   String   @default("OTHER") // GAME | LEARN | STORY | MUSIC | OTHER
+  scheduledAt    DateTime
+  completedAt    DateTime?
+  duration       Int?     // minutes
+  metadata       String?  // JSON for activity-specific data
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([childId, scheduledAt])
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Sound Boards (New feature)
+// ──────────────────────────────────────────────────────────────────────────────
+
+model SoundBoard {
+  id          String                @id @default(cuid())
+  facilityId  String
+  facility    Facility              @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+  name        String                // "Instruments", "Animals", etc.
+  emoji       String
+  description String?
+  color       String                @default("#a855f7")
+  sounds      String                // JSON array: [{id, name, emoji, uri, category}]
+  order       Int                   @default(0)
+  isPreset    Boolean               @default(true)
+  progress    SoundBoardProgress[]
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+
+  @@unique([facilityId, name])
+  @@index([facilityId])
+}
+
+model SoundBoardProgress {
+  id            String   @id @default(cuid())
+  childId       String
+  child         Child    @relation(fields: [childId], references: [id], onDelete: Cascade)
+  soundBoardId  String
+  soundBoard    SoundBoard @relation(fields: [soundBoardId], references: [id], onDelete: Cascade)
+  favorites     String?  // JSON array of sound IDs
+  lastPlayedAt  DateTime @default(now())
+  playCount     Int      @default(0)
+  updatedAt     DateTime @updatedAt
+
+  @@unique([childId, soundBoardId])
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// TTS Preferences (Voice selection per child)
+// ──────────────────────────────────────────────────────────────────────────────
+
+model TTSPreference {
+  id         String   @id @default(cuid())
+  childId    String?
+  provider   String   @default("BROWSER") // ELEVENLABS | GOOGLE | BROWSER
+  voiceId    String   @default("default")
+  voiceName  String   @default("Default")
+  language   String   @default("en-US")
+  gender     String?  // male | female | neutral
+  children   Child[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Existing Models (Updated)
+// ──────────────────────────────────────────────────────────────────────────────
 
 model BookProgress {
   id        String @id @default(cuid())
@@ -45,11 +191,16 @@ model BookProgress {
 }
 
 model CommTile {
-  id      String @id @default(cuid())
-  childId String
-  child   Child  @relation(fields: [childId], references: [id], onDelete: Cascade)
-  label   String
-  icon    String
-  boardId String
-  order   Int
+  id        String @id @default(cuid())
+  facilityId String @default("") // Add facility scope
+  childId   String
+  child     Child  @relation(fields: [childId], references: [id], onDelete: Cascade)
+  label     String
+  icon      String
+  boardId   String
+  order     Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([childId, boardId])
 }
