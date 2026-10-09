@@ -20,6 +20,7 @@ import Stories               from './pages/Stories'
 import Music                 from './pages/Music'
 import Communicate           from './pages/Communicate'
 import SoundBoards           from './pages/SoundBoards'
+import InstrumentKitPage     from './pages/InstrumentKitPage'
 import Settings              from './pages/Settings'
 
 // Games — solo (10 single-switch games)
@@ -219,6 +220,7 @@ export default function App() {
 
         {/* Sound Boards */}
         <Route path="/dashboard/child/:childId/sound-boards" element={<RequireAuth><SoundBoards /></RequireAuth>} />
+        <Route path="/dashboard/child/:childId/sound-boards/instruments/:kitId" element={<RequireAuth><InstrumentKitPage /></RequireAuth>} />
 
         {/* Settings */}
         <Route path="/dashboard/child/:childId/settings" element={<RequireAuth><Settings /></RequireAuth>} />

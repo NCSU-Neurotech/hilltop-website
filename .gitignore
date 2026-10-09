@@ -39,3 +39,4 @@ server/node_modules/.prisma/
 
 #Claude .MD files
 *.md
+.claude/

@@ -7,7 +7,8 @@
  * properties directly, movie franchises and cartoon characters respectively.)
  *
  * In Child Mode: ScanGroup auto-cycles through all sounds.
- * In Caregiver Mode: Board selector + sound grid.
+ * In Caregiver Mode: Board selector + sound grid, plus links to the
+ * single-instrument pages (see InstrumentKitPage / soundboards/instrumentKits).
  */
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
@@ -15,6 +16,7 @@ import { useScan } from '../context/ScanContext'
 import { useAuth } from '../context/AuthContext'
 import { ScanGroup } from '../components/ScanGroup'
 import ScanItem from '../components/ScanItem'
+import { INSTRUMENT_KITS } from '../soundboards/instrumentKits'
 
 const API = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
@@ -239,6 +241,31 @@ export default function SoundBoards() {
           />
         )}
 
+        {/* Single-instrument pages — caregiver opens one by click, and it
+            auto-scans on its own from there. */}
+        {!isChildMode && (
+          <section className="mt-12 max-w-5xl mx-auto w-full">
+            <h2 className="text-white font-black text-lg mb-1">🎼 Instrument Pages</h2>
+            <p className="text-slate-400 text-sm mb-4">
+              One instrument at a time — opens and starts scanning automatically
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              {INSTRUMENT_KITS.map((kit) => (
+                <button
+                  key={kit.id}
+                  onClick={() => navigate(`/dashboard/child/${childId}/sound-boards/instruments/${kit.id}`)}
+                  className="flex flex-col items-center justify-center gap-2 p-5 rounded-2xl border-2 border-transparent
+                             hover:border-white/20 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FFD700]"
+                  style={{ backgroundColor: kit.color + '22' }}
+                >
+                  <span className="text-4xl leading-none" aria-hidden>{kit.emoji}</span>
+                  <span className="text-white font-black text-sm">{kit.name}</span>
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
+
         {isChildMode && (
           <p className="text-slate-600 text-sm mt-8 text-center">
             Spacebar to select · Esc to exit child mode
@@ -284,10 +311,13 @@ export function getToneForSound(soundId) {
  * makes each button audibly different from the others until real audio is
  * sourced (real files, once added, are tried first and take priority).
  *
+ * Pitched sounds (e.g. instrument-kit piano keys) can pass their own `freq`
+ * so the fallback plays the right note instead of a hashed one.
+ *
  * Returns a { stop } handle so the caller can cut it short early if a new
  * sound is triggered before this one finishes on its own.
  */
-function playDistinctTone(soundId) {
+function playDistinctTone(soundId, freqOverride) {
   const AudioContextClass = window.AudioContext || window.webkitAudioContext
   if (!AudioContextClass) return null
   const audioContext = new AudioContextClass()
@@ -295,7 +325,9 @@ function playDistinctTone(soundId) {
   const osc = audioContext.createOscillator()
   const gain = audioContext.createGain()
 
-  const { freq, type } = getToneForSound(soundId)
+  const { freq, type } = freqOverride
+    ? { freq: freqOverride, type: 'triangle' }
+    : getToneForSound(soundId)
 
   osc.connect(gain)
   gain.connect(audioContext.destination)
@@ -318,7 +350,9 @@ function playDistinctTone(soundId) {
   }
 }
 
-export function SoundGrid({ sounds, activeBoard, childId, isChildMode, scanProfile }) {
+// logPlays=false for boards that aren't DB-backed (instrument kits) — the
+// play endpoint would just 404 for them.
+export function SoundGrid({ sounds, activeBoard, childId, isChildMode, scanProfile, logPlays = true }) {
   // Real audio files can run several seconds — without tracking what's
   // currently playing, starting a new sound would layer on top of the
   // previous one instead of replacing it. This ref holds a uniform
@@ -339,7 +373,7 @@ export function SoundGrid({ sounds, activeBoard, childId, isChildMode, scanProfi
     const myToken = ++playTokenRef.current
 
     // Log play event
-    if (activeBoard) {
+    if (activeBoard && logPlays) {
       fetch(`${API}/api/soundboards/${activeBoard.id}/play`, {
         method: 'POST',
         credentials: 'include',
@@ -367,7 +401,7 @@ export function SoundGrid({ sounds, activeBoard, childId, isChildMode, scanProfi
       currentPlaybackRef.current = { stop: () => { audio.pause(); audio.currentTime = 0 } }
     } catch {
       if (playTokenRef.current !== myToken) return // superseded while awaiting
-      currentPlaybackRef.current = playDistinctTone(sound.id)
+      currentPlaybackRef.current = playDistinctTone(sound.id, sound.freq)
     }
   }
 
@@ -431,8 +465,8 @@ function SoundTile({ sound, activeBoard }) {
                  hover:border-white/20 transition-all w-full"
       style={{ backgroundColor: bg + '22', minHeight: 140 }}
     >
-      <span className="text-5xl leading-none" aria-hidden>
-        {sound.emoji}
+      <span className="text-5xl leading-none font-black text-white" aria-hidden>
+        {sound.emoji ?? sound.label}
       </span>
       <div className="text-center">
         <p className="text-white font-black text-sm leading-tight">{sound.name}</p>

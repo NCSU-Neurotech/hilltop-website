@@ -1,0 +1,42 @@
+Instrument kit audio — one folder per kit. Drop the mp3s in with EXACTLY these names.
+Until a file exists the page plays a synthesized placeholder tone instead.
+Kit definitions: client/src/soundboards/instrumentKits.js
+
+drum-kit/  (Drum Kit)
+  kick.mp3  - Kick Drum
+  snare.mp3  - Snare Drum
+  hi-hat.mp3  - Hi-Hat
+  high-tom.mp3  - High Tom
+  low-tom.mp3  - Low Tom
+  floor-tom.mp3  - Floor Tom
+  crash.mp3  - Crash
+  ride.mp3  - Ride
+
+piano/  (Piano)
+  c4.mp3  - Do
+  d4.mp3  - Re
+  e4.mp3  - Mi
+  f4.mp3  - Fa
+  g4.mp3  - Sol
+  a4.mp3  - La
+  b4.mp3  - Ti
+  c5.mp3  - High Do
+
+guitar/  (Guitar)
+  low-e.mp3  - Low E String
+  a.mp3  - A String
+  d.mp3  - D String
+  g.mp3  - G String
+  b.mp3  - B String
+  high-e.mp3  - High E String
+  strum.mp3  - Strum
+
+xylophone/  (Xylophone)
+  c.mp3  - Red Bar
+  d.mp3  - Orange Bar
+  e.mp3  - Yellow Bar
+  f.mp3  - Green Bar
+  g.mp3  - Blue Bar
+  a.mp3  - Purple Bar
+  b.mp3  - Pink Bar
+  high-c.mp3  - High Red Bar
